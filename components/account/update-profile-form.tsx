@@ -51,7 +51,7 @@ export default function UpdateProfileForm({ user }: { user: User }) {
       setSuccessMsg('Profile updated successfully!')
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
-      console.log('[v0] Profile update error:', err)
+      // Error is handled by useAuth hook
     }
   }
 

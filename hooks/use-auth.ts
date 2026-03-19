@@ -3,6 +3,7 @@ import { useState } from "react";
 import { api } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 export function useAuth() {
   const router = useRouter();
@@ -68,22 +69,46 @@ export function useAuth() {
     username: string;
     phone: string;
   }) => {
-    const { data } = await api.patch("/auth/account", values, {
-      withCredentials: true,
-    });
-    setUser(data.data);
-    return data;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.patch("/auth/account", values, {
+        withCredentials: true,
+      });
+      setUser(data.data);
+      toast.success(data.message || "Profile updated successfully");
+      return data;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to update profile";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 🟢 Update Avatar
   const updateAvatar = async (formData: FormData) => {
-    const { data } = await api.patch("/auth/update-avatar", formData, {
-      withCredentials: true,
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    setUser(data.data);
-    return data;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.patch("/auth/update-avatar", formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      setUser(data.data);
+      toast.success(data.message || "Avatar updated successfully");
+      return data;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to update avatar";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 🟢 Change Password
@@ -91,9 +116,22 @@ export function useAuth() {
     oldPassword: string;
     newPassword: string;
   }) => {
-    return api.patch("/auth/change-password", values, {
-      withCredentials: true,
-    });
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.patch("/auth/change-password", values, {
+        withCredentials: true,
+      });
+      toast.success(data.message || "Password changed successfully");
+      return data;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to change password";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return {

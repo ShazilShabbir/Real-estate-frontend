@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
+
 import { Heart, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useProperties } from "@/hooks/use-properties"
+import {PropertyMediaCarousel} from "@/components/property-media-carousel"
+import { useAuthContext } from "@/lib/auth-context"
+import { cn } from "@/lib/utils"
 
 interface Property {
   _id: string | number
@@ -23,11 +26,13 @@ interface Property {
   squareFeet?: string | number
   image?: string
   images?: Array<string | { url?: string; public_id?: string }>
+  videos?: Array<string | { url?: string; public_id?: string }>
   area?: string | number
 }
 
 export function Featured() {
-  const { fetchProperties, loading, error } = useProperties()
+  const { user, isAuthenticated, refreshUser, optimisticToggleFavorite } = useAuthContext()
+  const { fetchProperties, toggleLike, loading, error } = useProperties()
   const [properties, setProperties] = useState<Property[]>([])
 
   useEffect(() => {
@@ -36,7 +41,7 @@ export function Featured() {
         const data = await fetchProperties({ limit: 5 })
         setProperties(data || [])
       } catch (err) {
-        console.log("[v0] Failed to load featured properties:", err)
+        // Error state handled by useProperties hook
       }
     }
     loadProperties()
@@ -69,7 +74,47 @@ export function Featured() {
     return "Location unavailable"
   }
 
-  
+  const [likedId, setLikedId] = useState<string | number | null>(null)
+
+  const handleLike = async (e: React.MouseEvent, propertyId: string | number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isAuthenticated) {
+      window.location.href = '/login'
+      return
+    }
+    setLikedId(propertyId)
+    setTimeout(() => setLikedId(null), 300)
+    
+    // Optimistic Update
+    optimisticToggleFavorite(propertyId.toString())
+    
+    try {
+      await toggleLike(propertyId)
+      // We don't necessarily need refreshUser here anymore since we updated optimistically,
+      // but keeping it for ultimate consistency if the backend changed something else.
+      await refreshUser()
+    } catch (err) {
+      // Rollback if needed, but for simplicity we rely on refreshUser or just let it stay
+      // In a more robust system, we would store previous state
+    }
+  }
+
+  const isLiked = (propertyId: string | number) => {
+    return user?.savedProperties?.includes(propertyId.toString())
+  }
+
+  const getVideo = (property: Property) => {
+  const raw = property.videos?.[0]
+  if (!raw) return null
+
+  // Cloudinary 20-second preview transformation
+  if (typeof raw === "string") return raw
+  if (raw.url) return raw.url.replace("/upload/", "/upload/so_20/")
+
+  return null
+}
+
   return (
     <section id="featured" className="py-16 md:py-24 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,19 +142,34 @@ export function Featured() {
           <div className="grid md:grid-cols-3 gap-6">
             {properties.map((property) => (
               
-              <Card key={property._id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative overflow-hidden h-64">
-                  <Image
-                    src={getImage(property)}
-                    alt={getTitle(property)}
-                    fill
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              <Card key={property._id} className="overflow-hidden hover:shadow-lg transition-shadow ">
+               <div
+  className="relative overflow-hidden h-64 group"
+>
+    <PropertyMediaCarousel
+                    images={getImage(property) ? [getImage(property)] : []}
+                    videos={property.videos}
+                    title={getTitle(property)}
+                   
                   />
-                  <button className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full p-2 transition-colors z-10">
-                    <Heart size={20} className="text-primary" />
-                  </button>
-                </div>
+
+
+  {/* Like Button */}
+  <button 
+    onClick={(e) => handleLike(e, property._id)}
+    className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full p-2 transition-colors z-10"
+  >
+    <Heart 
+      size={20} 
+      className={cn(
+        "transition-colors",
+        isLiked(property._id) ? "fill-red-500 text-red-500" : "text-primary",
+        likedId === property._id && "animate-heart-pop"
+      )} 
+    />
+  </button>
+</div>
+
 
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-foreground mb-2 text-pretty">{getTitle(property)}</h3>
@@ -133,7 +193,7 @@ export function Featured() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-primary hover:bg-primary/90">View Details</Button>
+                  <Button variant="default" className="w-full">View Details</Button>
                 </div>
               </Card>
             ))}

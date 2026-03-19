@@ -53,7 +53,7 @@ export default function UpdateAvatarForm({ user }: { user: User }) {
       setSelectedFile(null)
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
-      console.log('[v0] Avatar update error:', err)
+      // Error is handled by useAuth hook
     }
   }
 

@@ -46,7 +46,7 @@ export default function CreatePropertyPage() {
   const [videoPreviews, setVideoPreviews] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [videoFiles, setVideoFiles] = useState<File[]>([])
-  
+  const [step, setStep] = useState(1)
 
   const {
     register,
@@ -152,7 +152,7 @@ export default function CreatePropertyPage() {
         router.push('/properties')
       }, 2000)
     } catch (err) {
-      console.log('[v0] Error submitting form:', err)
+      // Error is handled by useProperties hook
     }
   }
 
@@ -237,9 +237,9 @@ export default function CreatePropertyPage() {
                       <option value="apartment">Apartment</option>
                       <option value="condo">Condo</option>
                       <option value="townhouse">Townhouse</option>
+                      <option value="villa">Villa</option>
                       <option value="commercial">Commercial</option>
                       <option value="land">Land</option>
-                      <option value="others">Others</option>
                     </select>
                     {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType.message}</p>}
                   </div>

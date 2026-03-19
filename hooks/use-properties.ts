@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { api } from "@/lib/axios";
+import { toast } from "sonner";
 
 interface Filters {
   q?: string;
@@ -15,6 +16,7 @@ interface Filters {
   sort?: string;
   page?: number;
   limit?: number;
+  postedBy?: string;
 }
 
 interface Address {
@@ -50,238 +52,150 @@ interface PropertyData {
   [key: string]: any;
 }
 
-interface ApiResponse {
-  success: boolean;
-  message?: string;
-  data?: any;
-  properties?: any[];
-  error?: string;
-}
-
 export function useProperties() {
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
- // Helper function to clear messages after timeout 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     const timer = setTimeout(() => {
       setSuccess(null);
       setError(null);
     }, 5000);
     return () => clearTimeout(timer);
-  };
+  }, []);
 
-  
-   // GET ALL PROPERTIES (search, filter, pagination)
-   
- const fetchProperties = async (filters: Filters = {}) => {
-  try {
-    setLoading(true);
-    setError(null);
-
-    const { data } = await api.get("/properties", { params: filters });
-
-    // Backend response structure:
-    // { statusCode, data: { properties: [...] } }
-    const properties =
-      data?.data?.properties ||
-      data?.properties ||
-      data?.data ||
-      [];
-
-    if (Array.isArray(properties)) {
-      return properties;
-    } else {
-      setError("Invalid response format");
+  const fetchProperties = useCallback(async (filters: Filters = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data } = await api.get("/properties", { params: filters });
+      const properties = data?.data?.properties || data?.properties || data?.data || [];
+      return Array.isArray(properties) ? properties : [];
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch properties");
       return [];
+    } finally {
+      setLoading(false);
     }
-  } catch (err: any) {
-    const errorMsg =
-      err?.response?.data?.message ||
-      err?.message ||
-      "Failed to fetch properties";
-    setError(errorMsg);
-    return [];
-  } finally {
-    setLoading(false);
-  }
-};
+  }, []);
 
-
-  // GET PROPERTY BY ID
-  
-  const getProperty = async (id: string | number) => {
+  const getProperty = useCallback(async (id: string | number) => {
     try {
       setLoading(true);
       setError(null);
       const { data } = await api.get(`/properties/${id}`);
       return data.data || data || {};
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to fetch property";
-      setError(errorMsg);
-      console.log("[v0] Error fetching property:", errorMsg);
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch property");
       return {};
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // CREATE PROPERTY (multipart/form-data with images & videos)
-   // Backend: POST /properties/create
-   // Supports up to 5 images and 2 videos
- 
-  const createProperty = async (formData: FormData) => {
+  const createProperty = useCallback(async (formData: FormData) => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       setError(null);
-      const { data } = await api.post("/properties/create", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      
-      setSuccess(data?.message || "Property created successfully");
+      const { data } = await api.post("/properties/create", formData);
+      const msg = data?.message || "Property created successfully";
+      setSuccess(msg);
+      toast.success(msg);
       clearMessages();
-      
       return data?.data || data;
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to create property";
-      setError(errorMsg);
-      console.log("[v0] Error creating property:", errorMsg);
+      const msg = err?.response?.data?.message || err?.message || "Failed to create property";
+      setError(msg);
       throw err;
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
-  };
+  }, [clearMessages]);
 
-  /* ------------------------------------------------------
-   * UPDATE PROPERTY (supports JSON or FormData)
-   * ------------------------------------------------------ */
-  const updateProperty = async (id: string | number, payload: FormData | PropertyData) => {
+  const updateProperty = useCallback(async (id: string | number, payload: FormData | PropertyData) => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       setError(null);
-
-      const isMultipart = payload instanceof FormData;
-
-      const { data } = await api.put(`/properties/${id}`, payload, {
-        headers: isMultipart
-          ? { "Content-Type": "multipart/form-data" }
-          : { "Content-Type": "application/json" },
-      });
-
-      setSuccess(data?.message || "Property updated successfully");
+      const { data } = await api.patch(`/properties/${id}`, payload);
+      const msg = data?.message || "Property updated successfully";
+      setSuccess(msg);
+      toast.success(msg);
       clearMessages();
-
       return data?.data || data;
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to update property";
-      setError(errorMsg);
-      console.log("[v0] Error updating property:", errorMsg);
+      const msg = err?.response?.data?.message || err?.message || "Failed to update property";
+      setError(msg);
       throw err;
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
-  };
+  }, [clearMessages]);
 
-  
-   // DELETE PROPERTY
- 
-  const deleteProperty = async (id: string | number) => {
+  const deleteProperty = useCallback(async (id: string | number) => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       setError(null);
       const { data } = await api.delete(`/properties/${id}`);
-      
-      setSuccess(data?.message || "Property deleted successfully");
+      const msg = data?.message || "Property deleted successfully";
+      setSuccess(msg);
+      toast.success(msg);
       clearMessages();
-      
       return data?.data || data;
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to delete property";
-      setError(errorMsg);
-      console.log("[v0] Error deleting property:", errorMsg);
+      const msg = err?.response?.data?.message || err?.message || "Failed to delete property";
+      setError(msg);
       throw err;
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
-  };
+  }, [clearMessages]);
 
-  // TOGGLE LIKE / FAVORITE
-   
-  const toggleLike = async (id: string | number) => {
+  const toggleLike = useCallback(async (id: string | number) => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       setError(null);
       const { data } = await api.post(`/properties/${id}/like`);
-      
-      setSuccess(data?.message || "Preference updated");
+      const msg = data?.message || "Preference updated";
+      setSuccess(msg);
+      toast.success(msg);
       clearMessages();
-      
       return data?.data || data;
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to toggle like";
-      setError(errorMsg);
-      console.log("[v0] Error toggling like:", errorMsg);
+      const msg = err?.response?.data?.message || err?.message || "Failed to toggle like";
+      setError(msg);
       throw err;
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
-  };
+  }, [clearMessages]);
 
-  // GET NEARBY PROPERTIES
-   
-  const getNearbyProperties = async (lat: number, lng: number, radius = 10, limit = 10) => {
+  const getNearbyProperties = useCallback(async (lat: number, lng: number, radius = 10, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
       const { data } = await api.get("/properties/nearby", {
         params: { lat, lng, radius, limit },
       });
-      
-      let properties: any[] = [];
-      
-      if (Array.isArray(data.data)) {
-        properties = data.data;
-      } else if (Array.isArray(data.properties)) {
-        properties = data.properties;
-      } else if (data.data?.properties && Array.isArray(data.data.properties)) {
-        properties = data.data.properties;
-      } else if (data.data?.items && Array.isArray(data.data.items)) {
-        properties = data.data.items;
-      } else if (Array.isArray(data)) {
-        properties = data;
-      }
-      
-      if (Array.isArray(properties)) {
-        return properties;
-      }
-      
-      console.log("[v0] Nearby properties response is not an array:", data);
-      return [];
+      const properties = data.data || data.properties || data.data?.properties || data.data?.items || data;
+      return Array.isArray(properties) ? properties : [];
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to fetch nearby properties";
-      setError(errorMsg);
-      console.log("[v0] Error fetching nearby properties:", errorMsg);
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch nearby properties");
       return [];
     } finally {
       setLoading(false);
     }
-  };
-
-
+  }, []);
 
   return {
-    // State
     loading,
+    actionLoading,
     error,
     success,
-    
-    // Query Functions
     fetchProperties,
     getProperty,
     getNearbyProperties,
-    
-    // Mutation Functions
     createProperty,
     updateProperty,
     deleteProperty,

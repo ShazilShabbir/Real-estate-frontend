@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section className="relative bg-gradient-to-br from-primary/10 to-primary/5 py-20 md:py-32 overflow-hidden">
       <div className="absolute inset-0 opacity-20">
-        <Image src="/modern-luxury-house.png" alt="Modern luxury house" fill priority className="object-cover" />
+        <Image src="/american-house.jpg" alt="Modern luxury house" fill priority className="object-cover" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

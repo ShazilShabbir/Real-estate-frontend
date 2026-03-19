@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { z } from "zod"
 import { useState } from "react"
+import { useAuthContext } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 const registerSchema = z
   .object({
@@ -31,6 +34,34 @@ export default function RegisterPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const { register: registerUser, isLoading, error: authError } = useAuth()
+  const { isAuthenticated, loading } = useAuthContext()
+  const router = useRouter()
+
+  // Redirect authenticated users away from register page
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      // Replace current history entry to prevent back button navigation
+      window.history.replaceState(null, '', '/')
+      router.push('/')
+    }
+  }, [isAuthenticated, loading, router])
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-128px)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If user is authenticated, don't render the register form
+  if (isAuthenticated) {
+    return null
+  }
 
   const {
     register,

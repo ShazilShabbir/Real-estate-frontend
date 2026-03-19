@@ -19,7 +19,6 @@ import Image from "next/image"
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const { isAuthenticated, logout, user,loading } = useAuthContext()
-// console.log(user?.avatar);
 
 if (loading) {
   return (
@@ -54,6 +53,9 @@ if (loading) {
           </Link>
           <Link href="/listings" className="text-foreground hover:text-primary transition-colors">
             Listings
+          </Link>
+          <Link href="/favorites" className="text-foreground hover:text-primary transition-colors">
+            Favorites
           </Link>
           <ThemeToggle />
         </div>
@@ -94,7 +96,11 @@ if (loading) {
                     <span>My Properties</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/favorites" className="flex items-center gap-2 cursor-pointer">
+                    <span>Your Favorites</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/account" className="flex items-center gap-2 cursor-pointer">
                     <User size={18} />
@@ -139,6 +145,9 @@ if (loading) {
               </Link>
               <Link href="/listings" className="text-foreground hover:text-primary transition-colors">
                 Listings
+              </Link>
+              <Link href="/favorites" className="text-foreground hover:text-primary transition-colors">
+                Favorites
               </Link>
               {!isAuthenticated ? (
                 <>

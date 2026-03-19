@@ -43,7 +43,7 @@ export default function ChangePasswordForm() {
       reset()
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
-      console.log('[v0] Password change error:', err)
+      // Error is handled by useAuth hook
     }
   }
 
@@ -62,14 +62,14 @@ export default function ChangePasswordForm() {
       )}
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+        <h4 className="text-sm text-blue-800">
           <strong>Password Requirements:</strong>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>At least 8 characters</li>
             <li>Contains at least one uppercase letter</li>
             <li>Contains at least one number</li>
           </ul>
-        </p>
+        </h4>
       </div>
 
       <div>
