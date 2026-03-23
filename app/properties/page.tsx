@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
@@ -174,7 +175,9 @@ export default function PropertiesPage() {
                         <div>•</div>
                         <div>{property.sqft || property.squareFeet || 'N/A'} sqft</div>
                       </div>
-                      <Button variant="default" className="w-full">View Details</Button>
+                      <Link href={`/properties/${property._id}`} className="w-full">
+                        <Button variant="default" className="w-full">View Details</Button>
+                      </Link>
                     </div>
                   </div>
                 ))}

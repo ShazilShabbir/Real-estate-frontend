@@ -9,6 +9,7 @@ import { useProperties } from "@/hooks/use-properties"
 import {PropertyMediaCarousel} from "@/components/property-media-carousel"
 import { useAuthContext } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 interface Property {
   _id: string | number
@@ -193,7 +194,11 @@ export function Featured() {
                     </div>
                   </div>
 
-                  <Button variant="default" className="w-full">View Details</Button>
+                  <Link href={`/properties/${property._id}`}>
+  <Button variant="default" className="w-full">
+    View Details
+  </Button>
+</Link>
                 </div>
               </Card>
             ))}
