@@ -5,7 +5,7 @@ import { useRef } from "react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Mail, Lock, ArrowRight, Home, AlertCircle, User, Phone, Upload, X } from "lucide-react"
+import { Mail, Lock, ArrowRight, Home, AlertCircle, User, Phone, Upload, X, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { z } from "zod"
@@ -13,26 +13,31 @@ import { useState } from "react"
 import { useAuthContext } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { useTranslation } from "@/lib/use-translation"
 
-const registerSchema = z
-  .object({
-    username: z.string().min(2, "Name must be at least 2 characters").toLowerCase(),
-    email: z.string().email("Invalid email address").toLowerCase(),
-    phone: z.string().min(10, "Phone number must be at least 10 digits"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
+const createRegisterSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      username: z.string().min(2, t("register.nameTooShort")).toLowerCase(),
+      email: z.string().email(t("register.invalidEmail")).toLowerCase(),
+      phone: z.string().min(10, t("register.phoneTooShort")),
+      password: z.string().min(8, t("register.passwordTooShort")),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("register.passwordsNoMatch"),
+      path: ["confirmPassword"],
+    })
 
-type RegisterFormData = z.infer<typeof registerSchema>
+type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const { register: registerUser, isLoading, error: authError } = useAuth()
   const { isAuthenticated, loading } = useAuthContext()
   const router = useRouter()
@@ -52,7 +57,7 @@ export default function RegisterPage() {
       <div className="min-h-[calc(100vh-128px)] flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>
     )
@@ -69,7 +74,7 @@ export default function RegisterPage() {
     formState: { errors },
     watch,
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(createRegisterSchema(t)),
   })
 
   const password = watch("password")
@@ -108,15 +113,15 @@ export default function RegisterPage() {
               <Home className="text-primary-foreground" size={24} />
             </div>
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Create account</h1>
-          <p className="mt-2 text-muted-foreground">Join our community of real estate professionals</p>
+          <h1 className="text-3xl font-bold text-foreground">{t("register.heading")}</h1>
+          <p className="mt-2 text-muted-foreground">{t("register.subtitle")}</p>
         </div>
 
         <div className="flex flex-col items-center gap-4 mb-6">
           <div className="relative group">
             <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden bg-muted/50 group-hover:border-primary transition-colors">
               {avatarPreview ? (
-                <img src={avatarPreview || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+                <img src={avatarPreview || "/placeholder.svg"} alt={t("register.imgAlt")} className="w-full h-full object-cover" />
               ) : (
                 <Upload className="text-muted-foreground group-hover:text-primary transition-colors" size={32} />
               )}
@@ -142,14 +147,14 @@ export default function RegisterPage() {
             </button>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
           </div>
-          <p className="text-xs text-muted-foreground">Upload profile picture (optional)</p>
+          <p className="text-xs text-muted-foreground">{t("register.uploadPhoto")}</p>
         </div>
 
         {(authError || Object.keys(errors).length > 0) && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-lg flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <AlertCircle size={16} />
-              <span>{authError || "Please fix the errors below"}</span>
+              <span>{authError || t("register.fixErrors")}</span>
             </div>
           </div>
         )}
@@ -158,7 +163,7 @@ export default function RegisterPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="text-sm font-medium text-foreground block mb-1">
-                Full Name
+                {t("register.fullName")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -166,8 +171,8 @@ export default function RegisterPage() {
                   {...register("username")}
                   id="username"
                   type="text"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.username ? "border-destructive" : "border-border"}`}
-                  placeholder="John Doe"
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.username ? "border-destructive" : "border-border"}`}
+                  placeholder={t("register.fullNamePlaceholder")}
                 />
               </div>
               {errors.username && <p className="text-xs text-destructive mt-1">{errors.username.message}</p>}
@@ -175,7 +180,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="text-sm font-medium text-foreground block mb-1">
-                Email Address
+                {t("register.email")}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -183,8 +188,8 @@ export default function RegisterPage() {
                   {...register("email")}
                   id="email"
                   type="email"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.email ? "border-destructive" : "border-border"}`}
-                  placeholder="name@example.com"
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.email ? "border-destructive" : "border-border"}`}
+                  placeholder={t("register.emailPlaceholder")}
                 />
               </div>
               {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
@@ -192,7 +197,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="phone" className="text-sm font-medium text-foreground block mb-1">
-                Phone Number
+                {t("register.phone")}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -200,8 +205,8 @@ export default function RegisterPage() {
                   {...register("phone")}
                   id="phone"
                   type="tel"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.phone ? "border-destructive" : "border-border"}`}
-                  placeholder="+1 (555) 000-0000"
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.phone ? "border-destructive" : "border-border"}`}
+                  placeholder={t("register.phonePlaceholder")}
                 />
               </div>
               {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
@@ -209,34 +214,52 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="text-sm font-medium text-foreground block mb-1">
-                Password
+                {t("register.password")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   {...register("password")}
                   id="password"
-                  type="password"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.password ? "border-destructive" : "border-border"}`}
-                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-11 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.password ? "border-destructive" : "border-border"}`}
+                  placeholder={t("register.passwordPlaceholder")}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground block mb-1">
-                Confirm Password
+                {t("register.confirmPassword")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   {...register("confirmPassword")}
                   id="confirmPassword"
-                  type="password"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.confirmPassword ? "border-destructive" : "border-border"}`}
-                  placeholder="••••••••"
+                  type={showConfirm ? "text" : "password"}
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-11 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${errors.confirmPassword ? "border-destructive" : "border-border"}`}
+                  placeholder={t("register.confirmPasswordPlaceholder")}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                >
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
               {errors.confirmPassword && (
                 <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
@@ -249,15 +272,15 @@ export default function RegisterPage() {
             className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg mt-2"
             disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Create Account"}
+            {isLoading ? t("register.creatingAccount") : t("register.createAccount")}
             {!isLoading && <ArrowRight className="ml-2" size={18} />}
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          {"Already have an account? "}
+          {t("register.hasAccount")}
           <Link href="/login" className="text-primary font-semibold hover:underline">
-            Sign in
+            {t("register.signIn")}
           </Link>
         </p>
       </div>

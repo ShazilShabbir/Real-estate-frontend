@@ -1,30 +1,36 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, ArrowRight, Home, AlertCircle, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, Home, AlertCircle, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { z } from "zod";
 import { useAuthContext } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useTranslation } from "@/lib/use-translation";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address").toLowerCase(),
-  username: z.string().min(1, "Username is required").toLowerCase(),
-  password: z.string().min(1, "Password is required"),
-});
+const createLoginSchema = (t: (key: string) => string) =>
+  z.object({
+    email: z.string().email(t("login.invalidEmail")).toLowerCase(),
+    username: z.string().min(1, t("login.usernameRequired")).toLowerCase(),
+    password: z.string().min(1, t("login.passwordRequired")),
+  });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>;
 
 export default function LoginPage() {
+  const { t } = useTranslation();
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(createLoginSchema(t)),
   });
 
   const { login, isLoading, error: authError, message } = useAuth();
@@ -46,7 +52,7 @@ export default function LoginPage() {
       <div className="min-h-[calc(100vh-128px)] flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -74,16 +80,16 @@ export default function LoginPage() {
               <Home className="text-primary-foreground" size={24} />
             </div>
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t("login.heading")}</h1>
           <p className="mt-2 text-muted-foreground">
-            Sign in to manage your property listings
+            {t("login.subtitle")}
           </p>
         </div>
 
         {(authError || Object.keys(errors).length > 0) && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-lg flex items-center gap-2">
             <AlertCircle size={16} />
-            {authError || "Please check your input fields"}
+            {authError || t("login.checkFields")}
           </div>
         )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} >
@@ -93,7 +99,7 @@ export default function LoginPage() {
                 htmlFor="username"
                 className="text-sm font-medium text-foreground block mb-1"
               >
-                Username
+                {t("login.username")}
               </label>
               <div className="relative">
                 <User
@@ -104,10 +110,10 @@ export default function LoginPage() {
                   {...register("username")}
                   id="username"
                   type="username"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
                     errors.username ? "border-destructive" : "border-border"
                   }`}
-                  placeholder="Enter your username"
+                  placeholder={t("login.usernamePlaceholder")}
                 />
               </div>
               {errors.username && (
@@ -122,7 +128,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="text-sm font-medium text-foreground block mb-1"
               >
-                Email Address
+                {t("login.email")}
               </label>
               <div className="relative">
                 <Mail
@@ -133,10 +139,12 @@ export default function LoginPage() {
                   {...register("email")}
                   id="email"
                   type="email"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
                     errors.email ? "border-destructive" : "border-border"
                   }`}
-                  placeholder="name@example.com"
+                  placeholder={t("login.emailPlaceholder")}
+                  autoComplete="email"
+                  inputMode="email"
                 />
               </div>
               {errors.email && (
@@ -152,10 +160,10 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-foreground block"
                 >
-                  Password
+                  {t("login.password")}
                 </label>
                 <Link href="#" className="text-xs text-primary hover:underline">
-                  Forgot password?
+                  {t("login.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -166,12 +174,22 @@ export default function LoginPage() {
                 <input
                   {...register("password")}
                   id="password"
-                  type="password"
-                  className={`w-full bg-background border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                  type={showPassword ? "text" : "password"}
+                  className={`w-full bg-background border rounded-lg py-3 pl-10 pr-11 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
                     errors.password ? "border-destructive" : "border-border"
                   }`}
-                  placeholder="••••••••"
+                  placeholder={t("login.passwordPlaceholder")}
+                  autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
               {errors.password && (
                 <p className="text-xs text-destructive mt-1">
@@ -186,17 +204,17 @@ export default function LoginPage() {
             className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg"
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? t("login.signingIn") : t("login.signIn")}
             {!isLoading && <ArrowRight className="ml-2" size={18} />}
           </Button>
         </form>
         <p className="text-center text-sm text-muted-foreground">
-          {"Don't have an account? "}
+          {t("login.noAccount")}
           <Link
             href="/register"
             className="text-primary font-semibold hover:underline"
           >
-            Sign up
+            {t("login.signUp")}
           </Link>
         </p>
       </div>

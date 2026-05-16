@@ -7,12 +7,14 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useProperties } from '@/hooks/use-properties'
-import { Upload, X, MapPin, Home, DollarSign, FileVideo } from 'lucide-react'
+import { useAuthContext } from '@/lib/auth-context'
+import { Upload, X, MapPin, Home, DollarSign, FileVideo, Shield, LogIn } from 'lucide-react'
 import Image from 'next/image'
 
 // Zod validation schema matching backend requirements
@@ -42,6 +44,41 @@ type PropertyFormData = z.infer<typeof propertySchema>
 export default function CreatePropertyPage() {
   const router = useRouter()
   const { createProperty, loading, error, success } = useProperties()
+  const { isAuthenticated, isAdminOrAgent } = useAuthContext()
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <LogIn className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Sign In Required</h1>
+            <p className="text-muted-foreground mb-6">Please sign in to list a property.</p>
+            <Link href="/login"><Button size="lg">Sign In</Button></Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!isAdminOrAgent) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <Shield className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Agent Access Required</h1>
+            <p className="text-muted-foreground mb-6">Only approved agents can list properties. Apply to become an agent.</p>
+            <Link href="/become-agent"><Button size="lg">Apply as Agent</Button></Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [videoPreviews, setVideoPreviews] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
@@ -195,7 +232,7 @@ export default function CreatePropertyPage() {
                   <input
                     type="text"
                     placeholder="e.g., Luxury 3-Bedroom Penthouse with Ocean View"
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                     {...register('title')}
                   />
                   {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
@@ -205,7 +242,7 @@ export default function CreatePropertyPage() {
                   <label className="block text-sm font-medium text-foreground mb-2">Description *</label>
                   <textarea
                     placeholder="Describe your property in detail. Highlight unique features, amenities, and what makes it special."
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary h-32"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary h-32 text-base"
                     {...register('description')}
                   />
                   {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
@@ -229,7 +266,7 @@ export default function CreatePropertyPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Property Type *</label>
                     <select
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                       {...register('propertyType')}
                     >
                       <option value="">Select property type</option>
@@ -260,7 +297,7 @@ export default function CreatePropertyPage() {
                   <input
                     type="number"
                     placeholder="3"
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                     {...register('bedrooms', { valueAsNumber: true })}
                   />
                 </div>
@@ -270,7 +307,7 @@ export default function CreatePropertyPage() {
                   <input
                     type="number"
                     placeholder="2"
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                     {...register('bathrooms', { valueAsNumber: true })}
                   />
                 </div>
@@ -280,7 +317,7 @@ export default function CreatePropertyPage() {
                   <input
                     type="number"
                     placeholder="5000"
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                     {...register('area', { valueAsNumber: true })}
                   />
                 </div>
@@ -300,7 +337,7 @@ export default function CreatePropertyPage() {
                   <input
                     type="text"
                     placeholder="123 Main Street"
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                     {...register('street')}
                   />
                 </div>
@@ -311,7 +348,7 @@ export default function CreatePropertyPage() {
                     <input
                       type="text"
                       placeholder="New York"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                       {...register('city')}
                     />
                     {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>}
@@ -322,7 +359,7 @@ export default function CreatePropertyPage() {
                     <input
                       type="text"
                       placeholder="NY"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                       {...register('state')}
                     />
                   </div>
@@ -334,7 +371,7 @@ export default function CreatePropertyPage() {
                     <input
                       type="text"
                       placeholder="United States"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                       {...register('country')}
                     />
                   </div>
@@ -344,7 +381,7 @@ export default function CreatePropertyPage() {
                     <input
                       type="text"
                       placeholder="10001"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base"
                       {...register('postalCode')}
                     />
                   </div>

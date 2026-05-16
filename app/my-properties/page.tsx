@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useProperties } from '@/hooks/use-properties'
 import { useAuthContext } from '@/lib/auth-context'
+import { useSite } from '@/lib/site-context'
+import { formatPrice } from '@/lib/format-price'
 import { PropertyMediaCarousel } from '@/components/property-media-carousel'
 import { Edit2, Trash2, MapPin, Loader2, Plus, Home } from 'lucide-react'
 import Link from 'next/link'
+import { Shield } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   AlertDialog,
@@ -45,11 +48,29 @@ interface Property {
 
 export default function MyPropertiesPage() {
   const router = useRouter()
-  const { user, isAuthenticated, loading: authLoading } = useAuthContext()
+  const { user, isAuthenticated, isAdminOrAgent, loading: authLoading } = useAuthContext()
+  const { defaultCurrency } = useSite()
   const { fetchProperties, deleteProperty, loading: propertiesLoading, error, success } = useProperties()
   const [myProperties, setMyProperties] = useState<Property[]>([])
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null)
+
+  if (!authLoading && user && !isAdminOrAgent) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <Shield className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Agent Access Required</h1>
+            <p className="text-muted-foreground mb-6">Only agents can manage properties. Apply to become an agent.</p>
+            <Link href="/become-agent"><Button size="lg">Apply as Agent</Button></Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -88,14 +109,6 @@ export default function MyPropertiesPage() {
     } finally {
       setIsDeleting(null)
     }
-  }
-
-  const formatPrice = (price: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      maximumFractionDigits: 0,
-    }).format(price)
   }
 
   if (authLoading || (propertiesLoading && myProperties.length === 0)) {
@@ -180,7 +193,7 @@ export default function MyPropertiesPage() {
                         {property.title}
                       </h3>
                       <p className="text-primary font-bold text-xl">
-                        {formatPrice(property.price, property.currency)}
+                        {formatPrice(property.price, property.currency, defaultCurrency)}
                       </p>
                     </div>
 

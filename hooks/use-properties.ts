@@ -17,6 +17,8 @@ interface Filters {
   page?: number;
   limit?: number;
   postedBy?: string;
+  isFeatured?: string;
+  [key: string]: any;
 }
 
 interface Address {
@@ -76,6 +78,45 @@ export function useProperties() {
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || "Failed to fetch properties");
       return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchPropertiesWithPagination = useCallback(async (filters: Filters = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data } = await api.get("/properties", { params: filters });
+      const res = data?.data || data || {};
+      const properties = Array.isArray(res.properties) ? res.properties : [];
+      return {
+        properties,
+        total: res.total ?? 0,
+        page: res.page ?? 1,
+        limit: res.limit ?? 10,
+      };
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch properties");
+      return { properties: [], total: 0, page: 1, limit: 10 };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchCategoryCounts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data } = await api.get("/properties/categories");
+      const res = data?.data || data || {};
+      return {
+        categories: Array.isArray(res.categories) ? res.categories : [],
+        cities: Array.isArray(res.cities) ? res.cities : [],
+      };
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch categories");
+      return { categories: [], cities: [] };
     } finally {
       setLoading(false);
     }
@@ -194,6 +235,8 @@ export function useProperties() {
     error,
     success,
     fetchProperties,
+    fetchPropertiesWithPagination,
+    fetchCategoryCounts,
     getProperty,
     getNearbyProperties,
     createProperty,

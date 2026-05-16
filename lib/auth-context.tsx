@@ -17,6 +17,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isAgent: boolean;
+  isAdminOrAgent: boolean;
   loading: boolean;
   setUser: (user: User | null) => void;
   logout: () => Promise<void>;
@@ -84,6 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAdmin: user?.role === "admin",
+        isAgent: user?.role === "agent",
+        isAdminOrAgent: user?.role === "admin" || user?.role === "agent",
         loading,
         setUser,
         logout,
