@@ -166,6 +166,7 @@
     "reset": "Reset",
     "close": "Close",
     "grid": "Grid",
+    "split": "Split",
     "map": "Map",
     "clearAll": "Clear All"
   },

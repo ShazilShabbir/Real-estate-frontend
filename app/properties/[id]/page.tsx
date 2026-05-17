@@ -378,6 +378,8 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
                       latitude={property.location.coordinates[1]}
                       longitude={property.location.coordinates[0]}
                       title={getTitle(property)}
+                      propertyType={property.propertyType}
+                      price={property.price}
                     />
                   </section>
                 </Reveal>

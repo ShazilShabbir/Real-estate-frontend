@@ -52,7 +52,9 @@ function PropertiesContent() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [showMobileFilter, setShowMobileFilter] = useState(false)
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid")
+  const [viewMode, setViewMode] = useState<"grid" | "split" | "map">("split")
+  const [mapBounds, setMapBounds] = useState<string>("")
+  const [showMapList, setShowMapList] = useState(true)
 
   const q = searchParams?.get("q") || ""
   const minPrice = searchParams?.get("minPrice") || ""
@@ -144,6 +146,78 @@ function PropertiesContent() {
     }
   }
 
+  const ResultsPanel = () => (
+    loading ? (
+      <SkeletonGrid count={viewMode === "split" ? 4 : 6} />
+    ) : error ? (
+      <div className="text-center py-16 bg-destructive/5 rounded-2xl border border-destructive/10 p-8">
+        <p className="text-destructive font-semibold mb-2">{t("properties.errorTitle")}</p>
+        <p className="text-muted-foreground text-sm mb-4">{error}</p>
+        <p className="text-muted-foreground text-xs">{t("properties.errorDesc")}</p>
+      </div>
+    ) : properties.length === 0 ? (
+      <div className="text-center py-16 bg-card rounded-2xl border border-dashed border-border">
+        <Home className="mx-auto h-14 w-14 text-muted-foreground mb-4 opacity-20" />
+        <h3 className="text-xl font-semibold text-foreground mb-2">{t("properties.emptyTitle")}</h3>
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">{t("properties.emptyDesc")}</p>
+        <Button variant="outline" onClick={() => router.push("/properties")}>
+          {t("properties.clearAllFilters")}
+        </Button>
+      </div>
+    ) : (
+      <>
+        <div className={`grid gap-5 ${viewMode === "split" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"}`}>
+          {properties.map((property) => (
+            <Link key={property._id} href={`/properties/${property._id}`} className="group block">
+              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+                <div className="relative overflow-hidden h-44">
+                  <PropertyMediaCarousel
+                    images={getImage(property) ? [getImage(property)] : []}
+                    videos={property.videos}
+                    title={getTitle(property)}
+                  />
+                  {property.status && (
+                    <span className={`absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider z-10 ${getStatusColor(property.status)}`}>
+                      {property.status}
+                    </span>
+                  )}
+                  <button onClick={(e) => handleLike(e, property._id)}
+                    className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2.5 transition-all z-10 shadow-md tap-target"
+                  >
+                    <Heart size={15} className={cn("transition-colors", isLiked(property._id) ? "fill-red-500 text-red-500" : "text-foreground/60", likedId === property._id && "animate-heart-pop")} />
+                  </button>
+                  {property.propertyType && (
+                    <span className="absolute bottom-3 left-3 bg-background/80 backdrop-blur-sm text-foreground px-2 py-0.5 rounded-full text-xs font-medium border border-border/50 z-10">
+                      {property.propertyType}
+                    </span>
+                  )}
+                </div>
+                <div className="p-3.5 sm:p-4 flex flex-col flex-1">
+                  <h3 className="text-sm font-semibold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                    {getTitle(property)}
+                  </h3>
+                  <div className="flex items-center text-muted-foreground text-xs mb-2">
+                    <MapPin size={11} className="mr-1 shrink-0" />
+                    <span className="truncate">{getLocation(property)}</span>
+                  </div>
+                  <p className="text-base font-bold text-primary mb-2">
+                    {formatPrice(property.price, property.currency, defaultCurrency)}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-auto pt-2 border-t border-border/50">
+                    <span className="flex items-center gap-1"><Bed size={12} />{getBeds(property)}</span>
+                    <span className="flex items-center gap-1"><Bath size={12} />{getBaths(property)}</span>
+                    <span className="flex items-center gap-1"><Square size={12} />{getArea(property)}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <Pagination page={page} total={total} limit={12} onPageChange={onPageChange} />
+      </>
+    )
+  )
+
   const [likedId, setLikedId] = useState<string | number | null>(null)
 
   const handleLike = async (e: React.MouseEvent, propertyId: string | number) => {
@@ -202,23 +276,33 @@ function PropertiesContent() {
                 <div className="flex items-center border border-border/60 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                       viewMode === "grid"
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground bg-card"
                     }`}
                   >
-                    {t("filter.grid")}
+                    ▦ {t("filter.grid")}
+                  </button>
+                  <button
+                    onClick={() => setViewMode("split")}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                      viewMode === "split"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground bg-card"
+                    }`}
+                  >
+                    ⊞ {t("filter.split")}
                   </button>
                   <button
                     onClick={() => setViewMode("map")}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                       viewMode === "map"
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground bg-card"
                     }`}
                   >
-                    {t("filter.map")}
+                    ⊗ {t("filter.map")}
                   </button>
                 </div>
 
@@ -262,25 +346,32 @@ function PropertiesContent() {
             )}
           </div>
 
-          {/* Map View */}
+          {/* Full map view */}
           {viewMode === "map" && (
             <div className="mb-8">
-              <PropertyMap properties={properties as any} height="500px" />
+              <PropertyMap
+                properties={properties as any}
+                height="calc(100vh - 280px)"
+                onBoundsChange={setMapBounds}
+                showPropertyList={showMapList}
+                onClosePropertyList={() => setShowMapList(false)}
+                total={total}
+                isLiked={isLiked}
+                onLike={handleLike}
+                likedId={likedId}
+              />
             </div>
           )}
 
+          {/* Grid view */}
           {viewMode === "grid" && (
           <div className="flex gap-8">
-            {/* Sidebar Filter - Desktop */}
             <aside className="hidden lg:block w-64 shrink-0">
               <div className="sticky top-24 bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-foreground">{t("filter.filters")}</h3>
                   {activeFilterCount > 0 && (
-                    <button
-                      onClick={() => router.push("/properties")}
-                      className="text-xs text-primary hover:text-primary/80 underline-offset-4 hover:underline"
-                    >
+                    <button onClick={() => router.push("/properties")} className="text-xs text-primary hover:text-primary/80 underline-offset-4 hover:underline">
                       {t("filter.reset")}
                     </button>
                   )}
@@ -288,8 +379,6 @@ function PropertiesContent() {
                 <PropertyFilter filters={filters} onFilterChange={onFilterChange} total={total} />
               </div>
             </aside>
-
-            {/* Mobile Filter Drawer */}
             {showMobileFilter && (
               <div className="fixed inset-0 z-50 lg:hidden animate-fade-in">
                 <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileFilter(false)} />
@@ -304,106 +393,47 @@ function PropertiesContent() {
                 </div>
               </div>
             )}
+            <ResultsPanel />
+          </div>
+          )}
 
-            {/* Results */}
+          {/* Split view: grid left, map right */}
+          {viewMode === "split" && (
+          <div className="flex gap-6 flex-col lg:flex-row">
             <div className="flex-1 min-w-0">
-              {loading ? (
-                <SkeletonGrid count={6} />
-              ) : error ? (
-                <div className="text-center py-16 bg-destructive/5 rounded-2xl border border-destructive/10 p-8">
-                  <p className="text-destructive font-semibold mb-2">{t("properties.errorTitle")}</p>
-                  <p className="text-muted-foreground text-sm mb-4">{error}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {t("properties.errorDesc")}
-                  </p>
-                </div>
-              ) : properties.length === 0 ? (
-                <div className="text-center py-16 bg-card rounded-2xl border border-dashed border-border">
-                  <Home className="mx-auto h-14 w-14 text-muted-foreground mb-4 opacity-20" />
-                  <h3 className="text-xl font-semibold text-foreground mb-2">{t("properties.emptyTitle")}</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    {t("properties.emptyDesc")}
-                  </p>
-                  <Button variant="outline" onClick={() => router.push("/properties")}>
-                    {t("properties.clearAllFilters")}
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {properties.map((property) => (
-                      <Link
-                        key={property._id}
-                        href={`/properties/${property._id}`}
-                        className="group block"
-                      >
-                        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
-                          <div className="relative overflow-hidden h-52">
-                            <PropertyMediaCarousel
-                              images={getImage(property) ? [getImage(property)] : []}
-                              videos={property.videos}
-                              title={getTitle(property)}
-                            />
-                            {property.status && (
-                              <span
-                                className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider z-10 ${getStatusColor(property.status)}`}
-                              >
-                                {property.status}
-                              </span>
-                            )}
-                            <button
-                              onClick={(e) => handleLike(e, property._id)}
-                              className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full p-3 transition-all z-10 shadow-md tap-target"
-                            >
-                              <Heart
-                                size={16}
-                                className={cn(
-                                  "transition-colors",
-                                  isLiked(property._id) ? "fill-red-500 text-red-500" : "text-foreground/60",
-                                  likedId === property._id && "animate-heart-pop"
-                                )}
-                              />
-                            </button>
-                            {property.propertyType && (
-                              <span className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm text-foreground px-2.5 py-1 rounded-full text-xs font-medium border border-border/50 z-10">
-                                {property.propertyType}
-                              </span>
-                            )}
-                          </div>
-                          <div className="p-4 sm:p-5 flex flex-col flex-1">
-                            <h3 className="text-base font-semibold text-foreground mb-1.5 line-clamp-2 sm:line-clamp-1 group-hover:text-primary transition-colors">
-                              {getTitle(property)}
-                            </h3>
-                            <div className="flex items-center text-muted-foreground text-xs mb-3">
-                              <MapPin size={12} className="mr-1 shrink-0" />
-                              <span className="truncate">{getLocation(property)}</span>
-                            </div>
-                            <p className="text-xl font-bold text-primary mb-3">
-                              {formatPrice(property.price, property.currency, defaultCurrency)}
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-auto pt-3 border-t border-border/50">
-                              <div className="flex items-center gap-1">
-                                <Bed size={13} className="text-foreground/40" />
-                                <span>{getBeds(property)}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Bath size={13} className="text-foreground/40" />
-                                <span>{getBaths(property)}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Square size={13} className="text-foreground/40" />
-                                <span>{getArea(property)} {t("featured.sqft")}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+              <div className="flex gap-2 mb-4 lg:hidden">
+                <Button variant="outline" size="sm" onClick={() => setShowMobileFilter(!showMobileFilter)} className="text-xs">
+                  <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+                  {t("filter.filters")} {activeFilterCount > 0 && `(${activeFilterCount})`}
+                </Button>
+              </div>
+              {showMobileFilter && (
+                <div className="fixed inset-0 z-50 lg:hidden animate-fade-in">
+                  <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileFilter(false)} />
+                  <div className="absolute right-0 top-0 h-full w-[calc(100vw-2rem)] max-w-sm bg-card p-6 overflow-y-auto shadow-2xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-foreground text-lg">{t("filter.filters")}</h3>
+                      <Button variant="ghost" size="sm" onClick={() => setShowMobileFilter(false)}>
+                        <X className="h-4 w-4 mr-1" /> {t("filter.close")}
+                      </Button>
+                    </div>
+                    <PropertyFilter filters={filters} onFilterChange={onFilterChange} total={total} />
                   </div>
-
-                  <Pagination page={page} total={total} limit={12} onPageChange={onPageChange} />
-                </>
+                </div>
               )}
+              <ResultsPanel />
+            </div>
+            <div className="lg:w-[45%] xl:w-[42%] lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-120px)] rounded-2xl overflow-hidden border border-border/50">
+              <PropertyMap
+                properties={properties as any}
+                height="100%"
+                onBoundsChange={setMapBounds}
+                showPropertyList={false}
+                total={total}
+                isLiked={isLiked}
+                onLike={handleLike}
+                likedId={likedId}
+              />
             </div>
           </div>
           )}
