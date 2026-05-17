@@ -160,7 +160,6 @@
     "priceLowHigh": "价格从低到高",
     "priceHighLow": "价格从高到低",
     "results": "{total} 条结果",
-    "results_plural": "{total} 条结果",
     "clearFilters": "清除筛选",
     "filters": "筛选",
     "reset": "重置",

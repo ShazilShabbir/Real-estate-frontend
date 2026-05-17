@@ -160,7 +160,6 @@
     "priceLowHigh": "価格の安い順",
     "priceHighLow": "価格の高い順",
     "results": "{total} 件の結果",
-    "results_plural": "{total} 件の結果",
     "clearFilters": "フィルターをクリア",
     "filters": "フィルター",
     "reset": "リセット",

@@ -11,8 +11,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useProperties } from '@/hooks/use-properties'
 import { Upload, X, MapPin, Home, DollarSign, FileVideo, Loader2, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/use-translation'
 
 // Zod validation schema matching backend requirements
 const propertySchema = z.object({
@@ -39,6 +41,7 @@ const propertySchema = z.object({
 type PropertyFormData = z.infer<typeof propertySchema>
 
 export default function EditPropertyPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const params = useParams()
   const propertyId = params.id as string
@@ -106,8 +109,8 @@ export default function EditPropertyPage() {
             setExistingVideos(data.videos)
           }
         }
-      } catch (err) {
-        console.error('[EditProperty] Error loading property:', err)
+      } catch {
+        toast.error(t("editProperty.loadingError"))
       } finally {
         if (isMounted) setFetching(false)
       }
@@ -228,8 +231,8 @@ export default function EditPropertyPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Edit Property</h1>
-              <p className="text-lg text-foreground/70">Update your property listing information</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2">{t("editProperty.heading")}</h1>
+              <p className="text-lg text-foreground/70">{t("editProperty.subtitle")}</p>
             </div>
           </div>
 
@@ -251,15 +254,15 @@ export default function EditPropertyPage() {
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">1</div>
-                <h2 className="text-2xl font-semibold text-foreground">Basic Information</h2>
+                <h2 className="text-2xl font-semibold text-foreground">{t("createProperty.step1Title")}</h2>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Property Title *</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.propertyTitle")}</label>
                   <input
                     type="text"
-                    placeholder="e.g., Luxury 3-Bedroom Penthouse"
+                    placeholder={t("createProperty.titlePlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     {...register('title')}
                   />
@@ -267,9 +270,9 @@ export default function EditPropertyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Description *</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.description")}</label>
                   <textarea
-                    placeholder="Describe your property in detail..."
+                    placeholder={t("createProperty.descriptionPlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary h-32 bg-background text-foreground"
                     {...register('description')}
                   />
@@ -278,12 +281,12 @@ export default function EditPropertyPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Price (USD) *</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.price")}</label>
                     <div className="relative flex items-center">
                       <DollarSign className="absolute ml-3 text-foreground/50" size={18} />
                       <input
                         type="number"
-                        placeholder="1000000"
+                        placeholder={t("createProperty.pricePlaceholder")}
                         className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                         {...register('price', { valueAsNumber: true })}
                       />
@@ -292,19 +295,19 @@ export default function EditPropertyPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Property Type *</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.propertyType")}</label>
                     <select
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       {...register('propertyType')}
                     >
-                      <option value="">Select property type</option>
-                      <option value="house">House</option>
-                      <option value="apartment">Apartment</option>
-                      <option value="condo">Condo</option>
-                      <option value="townhouse">Townhouse</option>
-                      <option value="villa">Villa</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="land">Land</option>
+                      <option value="">{t("createProperty.selectType")}</option>
+                      <option value="house">{t("filter.house")}</option>
+                      <option value="apartment">{t("filter.apartment")}</option>
+                      <option value="condo">{t("filter.condo")}</option>
+                      <option value="townhouse">{t("filter.townhouse")}</option>
+                      <option value="villa">{t("filter.villa")}</option>
+                      <option value="commercial">{t("filter.commercial")}</option>
+                      <option value="land">{t("filter.land")}</option>
                     </select>
                     {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType.message}</p>}
                   </div>
@@ -316,35 +319,35 @@ export default function EditPropertyPage() {
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">2</div>
-                <h2 className="text-2xl font-semibold text-foreground">Property Details</h2>
+                <h2 className="text-2xl font-semibold text-foreground">{t("createProperty.step2Title")}</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Bedrooms</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.bedrooms")}</label>
                   <input
                     type="number"
-                    placeholder="3"
+                    placeholder={t("createProperty.bedroomsPlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     {...register('bedrooms', { valueAsNumber: true })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Bathrooms</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.bathrooms")}</label>
                   <input
                     type="number"
-                    placeholder="2"
+                    placeholder={t("createProperty.bathroomsPlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     {...register('bathrooms', { valueAsNumber: true })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Area (sqft)</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.area")}</label>
                   <input
                     type="number"
-                    placeholder="5000"
+                    placeholder={t("createProperty.areaPlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     {...register('area', { valueAsNumber: true })}
                   />
@@ -356,15 +359,15 @@ export default function EditPropertyPage() {
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">3</div>
-                <h2 className="text-2xl font-semibold text-foreground">Location</h2>
+                <h2 className="text-2xl font-semibold text-foreground">{t("createProperty.step3Title")}</h2>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Street Address</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.street")}</label>
                   <input
                     type="text"
-                    placeholder="123 Main Street"
+                    placeholder={t("createProperty.streetPlaceholder")}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     {...register('street')}
                   />
@@ -372,10 +375,10 @@ export default function EditPropertyPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">City *</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.city")}</label>
                     <input
                       type="text"
-                      placeholder="New York"
+                      placeholder={t("createProperty.cityPlaceholder")}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       {...register('city')}
                     />
@@ -383,10 +386,10 @@ export default function EditPropertyPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">State</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.state")}</label>
                     <input
                       type="text"
-                      placeholder="NY"
+                      placeholder={t("createProperty.statePlaceholder")}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       {...register('state')}
                     />
@@ -395,20 +398,20 @@ export default function EditPropertyPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Country</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.country")}</label>
                     <input
                       type="text"
-                      placeholder="United States"
+                      placeholder={t("createProperty.countryPlaceholder")}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       {...register('country')}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Postal Code</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t("createProperty.postalCode")}</label>
                     <input
                       type="text"
-                      placeholder="10001"
+                      placeholder={t("createProperty.postalCodePlaceholder")}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       {...register('postalCode')}
                     />
@@ -421,7 +424,7 @@ export default function EditPropertyPage() {
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">4</div>
-                <h2 className="text-2xl font-semibold text-foreground">Media</h2>
+                <h2 className="text-2xl font-semibold text-foreground">{t("createProperty.mediaTitle")}</h2>
               </div>
 
               <div className="space-y-6">
@@ -588,8 +591,8 @@ export default function EditPropertyPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-foreground">Featured Listing</label>
-                  <p className="text-sm text-foreground/60">Make this property stand out</p>
+                  <label className="text-sm font-medium text-foreground">{t("createProperty.featuredLabel")}</label>
+                  <p className="text-sm text-foreground/60">{t("createProperty.featuredDesc")}</p>
                 </div>
                 <input type="checkbox" {...register('isFeatured')} className="w-5 h-5 cursor-pointer accent-primary" />
               </div>
@@ -603,21 +606,21 @@ export default function EditPropertyPage() {
                 className="flex-1 bg-transparent border-primary text-primary hover:bg-primary/10"
                 onClick={() => router.back()}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold "
               >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="animate-spin" size={20} />
-                    Updating...
-                  </div>
-                ) : (
-                  'Update Property'
-                )}
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="animate-spin" size={20} />
+                        {t("editProperty.submittingBtn")}
+                      </div>
+                    ) : (
+                      t("editProperty.submitBtn")
+                    )}
               </Button>
             </div>
           </form>

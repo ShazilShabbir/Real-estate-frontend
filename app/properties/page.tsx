@@ -213,7 +213,6 @@ function PropertiesContent() {
             </Link>
           ))}
         </div>
-        <Pagination page={page} total={total} limit={12} onPageChange={onPageChange} />
       </>
     )
   )
@@ -393,7 +392,10 @@ function PropertiesContent() {
                 </div>
               </div>
             )}
-            <ResultsPanel />
+            <div className="flex-1 min-w-0">
+              <ResultsPanel />
+              <Pagination page={page} total={total} limit={12} onPageChange={onPageChange} />
+            </div>
           </div>
           )}
 
@@ -422,6 +424,7 @@ function PropertiesContent() {
                 </div>
               )}
               <ResultsPanel />
+              <Pagination page={page} total={total} limit={12} onPageChange={onPageChange} />
             </div>
             <div className="lg:w-[45%] xl:w-[42%] lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-120px)] rounded-2xl overflow-hidden border border-border/50">
               <PropertyMap

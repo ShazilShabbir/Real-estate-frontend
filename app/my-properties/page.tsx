@@ -10,6 +10,7 @@ import { useAuthContext } from '@/lib/auth-context'
 import { useSite } from '@/lib/site-context'
 import { formatPrice } from '@/lib/format-price'
 import { PropertyMediaCarousel } from '@/components/property-media-carousel'
+import { useTranslation } from '@/lib/use-translation'
 import { Edit2, Trash2, MapPin, Loader2, Plus, Home } from 'lucide-react'
 import Link from 'next/link'
 import { Shield } from 'lucide-react'
@@ -47,6 +48,7 @@ interface Property {
 }
 
 export default function MyPropertiesPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, isAuthenticated, isAdminOrAgent, loading: authLoading } = useAuthContext()
   const { defaultCurrency } = useSite()
@@ -62,9 +64,9 @@ export default function MyPropertiesPage() {
         <main className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="text-center max-w-md">
             <Shield className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Agent Access Required</h1>
-            <p className="text-muted-foreground mb-6">Only agents can manage properties. Apply to become an agent.</p>
-            <Link href="/become-agent"><Button size="lg">Apply as Agent</Button></Link>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t("myProperties.agentAccessTitle")}</h1>
+            <p className="text-muted-foreground mb-6">{t("myProperties.agentAccessDesc")}</p>
+            <Link href="/become-agent"><Button size="lg">{t("myProperties.applyAsAgent")}</Button></Link>
           </div>
         </main>
         <Footer />
@@ -81,7 +83,6 @@ export default function MyPropertiesPage() {
   const loadMyProperties = async () => {
     try {
       if (user) {
-        // Fetch properties filtered by current user via backend
         const filtered = await fetchProperties({ postedBy: user._id })
         setMyProperties(filtered || [])
       }
@@ -130,22 +131,16 @@ export default function MyPropertiesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">My Properties</h1>
-              <p className="text-lg text-muted-foreground">Manage your active real estate listings</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2">{t("myProperties.heading")}</h1>
+              <p className="text-lg text-muted-foreground">{t("myProperties.subtitle")}</p>
             </div>
             <Link href="/create-property">
               <Button className="bg-primary hover:bg-primary/90 flex items-center gap-2 h-12 px-6">
                 <Plus size={20} />
-                Add New Property
+                {t("myProperties.addNew")}
               </Button>
             </Link>
           </div>
-
-          {/* {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
-              {success}
-            </div>
-          )} */}
 
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
@@ -158,13 +153,13 @@ export default function MyPropertiesPage() {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
                 <Home size={32} />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No properties found</h3>
+              <h3 className="text-xl font-semibold mb-2">{t("myProperties.emptyTitle")}</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                You haven&apos;t listed any properties yet. Start your journey by creating your first listing!
+                {t("myProperties.emptyDesc")}
               </p>
               <Link href="/create-property">
                 <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white bg-transparent">
-                  Create Your First Listing
+                  {t("myProperties.createFirst")}
                 </Button>
               </Link>
             </Card>
@@ -172,7 +167,6 @@ export default function MyPropertiesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {myProperties.map((property) => (
                 <Card key={property._id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-border">
-                  {/* Media Section */}
                   <div className="relative h-64 overflow-hidden">
                     <PropertyMediaCarousel
                       images={property.images?.map(img => typeof img === 'string' ? img : img.url) || []}
@@ -181,12 +175,11 @@ export default function MyPropertiesPage() {
                     />
                     <div className="absolute top-4 left-4 z-10">
                       <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                        Active
+                        {t("myProperties.statusActive")}
                       </span>
                     </div>
                   </div>
 
-                  {/* Content Section */}
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-bold text-foreground truncate flex-1 mr-2" title={property.title}>
@@ -200,28 +193,27 @@ export default function MyPropertiesPage() {
                     <div className="flex items-center gap-1 text-muted-foreground text-sm mb-4">
                       <MapPin size={14} className="flex-shrink-0" />
                       <span className="truncate">
-                        {[property.address?.city, property.address?.state].filter(Boolean).join(', ') || 'Location N/A'}
+                        {[property.address?.city, property.address?.state].filter(Boolean).join(', ') || t("myProperties.locationNA")}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-4 text-sm text-foreground/70 mb-6 pb-6 border-b border-border">
                       <div className="flex items-center gap-1">
-                        <span className="font-bold text-foreground">{property.bedrooms || 0}</span> Beds
+                        <span className="font-bold text-foreground">{property.bedrooms || 0}</span> {t("myProperties.beds")}
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-bold text-foreground">{property.bathrooms || 0}</span> Baths
+                        <span className="font-bold text-foreground">{property.bathrooms || 0}</span> {t("myProperties.baths")}
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-bold text-foreground">{property.area || 0}</span> sqft
+                        <span className="font-bold text-foreground">{property.area || 0}</span> {t("myProperties.sqft")}
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="grid grid-cols-2 gap-3">
                       <Link href={`/edit-property/${property._id}`} className="w-full">
                         <Button variant="outline" className="w-full gap-2 border-primary text-primary hover:bg-primary hover:text-white bg-transparent">
                           <Edit2 size={16} />
-                          Edit
+                          {t("myProperties.edit")}
                         </Button>
                       </Link>
                       <Button
@@ -235,7 +227,7 @@ export default function MyPropertiesPage() {
                         ) : (
                           <Trash2 size={16} />
                         )}
-                        Delete
+                        {t("myProperties.delete")}
                       </Button>
                     </div>
                   </div>
@@ -251,14 +243,14 @@ export default function MyPropertiesPage() {
             <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
               <Trash2 />
             </AlertDialogMedia>
-            <AlertDialogTitle>Delete property listing?</AlertDialogTitle>
+            <AlertDialogTitle>{t("myProperties.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{propertyToDelete?.title}". This action cannot be undone.
+              {t("myProperties.deleteDesc", { title: propertyToDelete?.title || "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel variant="outline">{t("myProperties.cancel")}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete}>{t("myProperties.confirmDelete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -160,7 +160,6 @@
     "priceLowHigh": "السعر: من الأقل إلى الأعلى",
     "priceHighLow": "السعر: من الأعلى إلى الأقل",
     "results": "{total} نتيجة",
-    "results_plural": "{total} نتيجة",
     "clearFilters": "مسح التصفية",
     "filters": "تصفية",
     "reset": "إعادة تعيين",

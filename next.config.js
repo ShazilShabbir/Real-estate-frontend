@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "real-estate-api-cyan.vercel.app",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
       {
         protocol: "http",

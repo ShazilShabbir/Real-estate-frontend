@@ -61,9 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
-    } catch (err) {
-      // Handle server errors if needed
-      console.error("Logout failed", err);
+    } catch {
+      // Server errors handled by axios interceptor
     }
     setUser(null);
   };

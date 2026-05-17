@@ -1,3 +1,1 @@
-export function ScrollReveal() {
-  return null
-}
+// REMOVED — replaced by components/reveal.tsx
