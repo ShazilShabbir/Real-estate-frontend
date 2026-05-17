@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { api } from "@/lib/axios"
 
-const API_ORIGIN = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "http://localhost:8080"
+const API_ORIGIN = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "https://real-estate-api-cyan.vercel.app"
 
 export interface SiteData {
   direction: "ltr" | "rtl"

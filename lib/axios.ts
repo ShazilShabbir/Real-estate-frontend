@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 
 export const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "https://real-estate-api-cyan.vercel.app/api/",
   withCredentials: true,
 })
 

@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
 
-const API_ORIGIN = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "http://localhost:8080"
+const API_ORIGIN = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "https://real-estate-api-cyan.vercel.app"
 
 const LANGUAGES = [
   { code: "en", label: "English", dir: "ltr" },
