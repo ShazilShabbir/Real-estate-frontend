@@ -1,10 +1,13 @@
 import axios from "axios"
 import { toast } from "sonner"
 
-
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://real-estate-api-cyan.vercel.app/api"
+).replace(/\/+$/, "")
 
 export const api = axios.create({
-  baseURL: "https://real-estate-api-cyan.vercel.app/api/",
+  baseURL: `${API_BASE_URL}/`,
   withCredentials: true,
 })
 
