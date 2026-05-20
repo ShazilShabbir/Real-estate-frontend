@@ -7,6 +7,8 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster"
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { useSite } from "@/lib/site-context"
 import { formatPrice } from "@/lib/format-price"
 import { MapControls } from "@/components/map-controls"
@@ -45,7 +47,7 @@ interface PropertyMapProps {
   likedId?: string | number | null
 }
 
-const TILES = {
+const TILES: Record<string, string> = {
   Street: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
   Dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   Satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -109,7 +111,7 @@ function createPriceLabelIcon(price: string, color: string) {
 // Track map bounds and emit on change
 function BoundsTracker({ onBoundsChange }: { onBoundsChange?: (bounds: string) => void }) {
   const map = useMap()
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!onBoundsChange) return
@@ -220,7 +222,7 @@ function ZoomTracker({ onZoom }: { onZoom: (z: number) => void }) {
     onZoom(map.getZoom())
     const handler = () => onZoom(map.getZoom())
     map.on("zoomend", handler)
-    return () => map.off("zoomend", handler)
+    return () => { map.off("zoomend", handler) }
   }, [map, onZoom])
   return null
 }

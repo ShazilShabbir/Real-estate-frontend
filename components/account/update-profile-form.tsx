@@ -16,7 +16,7 @@ const updateProfileSchema = z.object({
 type UpdateProfileFormData = z.infer<typeof updateProfileSchema>
 
 interface User {
-  id: string
+  _id: string
   username: string
   email: string
   avatar?: string

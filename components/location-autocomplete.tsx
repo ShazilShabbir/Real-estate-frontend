@@ -26,7 +26,7 @@ export function LocationAutocomplete({ value, onChange, onEnter, placeholder = "
   const [highlightIndex, setHighlightIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { setInput(value) }, [value])
 

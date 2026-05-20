@@ -18,7 +18,7 @@ interface Filters {
   limit?: number;
   postedBy?: string;
   isFeatured?: string;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
 }
 
 interface Address {

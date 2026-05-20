@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 
 interface User {
-  id: string
+  _id: string
   username: string
   email: string
   avatar?: string

@@ -18,6 +18,7 @@ interface Filters {
   bedrooms?: string
   bathrooms?: string
   sort?: string
+  [key: string]: string | number | undefined
 }
 
 interface PropertyFilterProps {
@@ -33,7 +34,7 @@ export function PropertyFilter({ filters, onFilterChange, total }: PropertyFilte
   const [locationText, setLocationText] = useState(
     filters.city && filters.state ? `${filters.city}, ${filters.state}` : ""
   )
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { t } = useTranslation()
 
   const PROPERTY_TYPES = [

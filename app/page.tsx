@@ -1,4 +1,7 @@
+export const dynamic = "force-dynamic"
+
 import { Header } from "@/components/header"
+
 import { Hero } from "@/components/hero"
 import { CategoriesSection } from "@/components/categories-section"
 import { Featured } from "@/components/featured"

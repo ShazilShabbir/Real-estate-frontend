@@ -12,6 +12,7 @@ interface User {
   role?: string;
   savedProperties?: string[];
   updatedAt?: string;
+  agentApplication?: { status: string };
 }
 
 interface AuthContextType {

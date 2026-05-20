@@ -77,7 +77,12 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSite() {
-  return useContext(SiteContext)
+  const context = useContext(SiteContext)
+  // Return defaults if context is not available (e.g., during error boundary prerendering)
+  if (!context) {
+    return defaults
+  }
+  return context
 }
 
 // Backwards-compatible alias
