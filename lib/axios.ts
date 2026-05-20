@@ -24,17 +24,22 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config || {}
+    const requestUrl = String(originalRequest.url || "")
+    const isAuthCheck = requestUrl.includes("/auth/me")
+    const isRefreshRequest = requestUrl.includes("/auth/refresh")
 
     // Only retry once for 401
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
       originalRequest._retry = true;
 
       try {
-        await api.get("/auth/refresh");
+        await api.post("/auth/refresh");
         return api(originalRequest);
       } catch (refreshError) {
-        toast.error("Session expired. Please log in again.");
+        if (!isAuthCheck) {
+          toast.error("Session expired. Please log in again.");
+        }
         return Promise.reject(refreshError);
       }
     }
@@ -43,7 +48,7 @@ api.interceptors.response.use(
     const errorMessage = error.response?.data?.message || error.message || "An unexpected error occurred";
     
     // Only show toast if it's not a 401 (which we either retry or handle above)
-    if (error.response?.status !== 401) {
+    if (error.response?.status !== 401 && !isAuthCheck) {
       toast.error(errorMessage);
     }
 
