@@ -18,6 +18,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
+function normalizeAssetUrl(url?: string | null) {
+  if (!url) return url
+  if (url.startsWith("http://")) {
+    return `https://${url.slice("http://".length)}`
+  }
+  return url
+}
+
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -26,6 +34,8 @@ export function Header() {
   const { isAuthenticated, isAdminOrAgent, logout, user, loading } = useAuthContext()
   const { siteLogo, siteName } = useSite()
   const { t } = useTranslation()
+  const normalizedSiteLogo = normalizeAssetUrl(siteLogo)
+  const normalizedAvatar = normalizeAssetUrl(user?.avatar) || "/default-avatar.png"
   const NAV_LINKS = [
     { href: "/properties", label: t("nav.properties") },
     { href: "/about", label: t("nav.about") },
@@ -100,9 +110,9 @@ export function Header() {
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group">
-          {siteLogo ? (
+          {normalizedSiteLogo ? (
             <div className="relative h-10 flex items-center">
-              <img src={siteLogo} alt={siteName} className="h-full w-auto max-w-[200px] object-contain" />
+              <img src={normalizedSiteLogo} alt={siteName} className="h-full w-auto max-w-[200px] object-contain" />
             </div>
           ) : (
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-amber-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
@@ -152,7 +162,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-muted/50 transition-all duration-200 group cursor-pointer">
                   <Avatar className="h-8 w-8 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
-                    <AvatarImage src={user?.avatar || "/default-avatar.png"} alt={user?.username || "Profile"} />
+                    <AvatarImage src={normalizedAvatar} alt={user?.username || "Profile"} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-amber-500 text-primary-foreground text-xs font-bold">
                       {user?.username?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
@@ -167,7 +177,7 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-60 p-1.5 rounded-2xl shadow-xl border-border/50 bg-white dark:bg-neutral-900">
                 <div className="flex items-center gap-3 p-3 mb-1 rounded-xl bg-gradient-to-br from-primary/5 to-transparent border border-border/30">
                   <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-                    <AvatarImage src={user?.avatar || "/default-avatar.png"} alt={user?.username || "Profile"} />
+                    <AvatarImage src={normalizedAvatar} alt={user?.username || "Profile"} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-amber-500 text-primary-foreground font-bold">
                       {user?.username?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
@@ -355,7 +365,7 @@ export function Header() {
                   <div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={user?.avatar || "/default-avatar.png"} alt={user?.username || "Profile"} />
+                        <AvatarImage src={normalizedAvatar} alt={user?.username || "Profile"} />
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                           {user?.username?.[0]?.toUpperCase() || "U"}
                         </AvatarFallback>

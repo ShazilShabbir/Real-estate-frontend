@@ -1,11 +1,9 @@
 'use client'
 
-
-
 import React from "react"
 
 import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
@@ -16,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useProperties } from '@/hooks/use-properties'
 import { useAuthContext } from '@/lib/auth-context'
-import { Upload, X, MapPin, Home, DollarSign, FileVideo, Shield, LogIn } from 'lucide-react'
+import { Upload, X, DollarSign, FileVideo, Shield, LogIn } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslation } from '@/lib/use-translation'
 
@@ -47,54 +45,17 @@ type PropertyFormData = z.infer<typeof propertySchema>
 export default function CreatePropertyPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { createProperty, loading, error, success } = useProperties()
-  const { isAuthenticated, isAdminOrAgent } = useAuthContext()
-
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Header />
-        <main className="min-h-[60vh] flex items-center justify-center px-4">
-          <div className="text-center max-w-md">
-            <LogIn className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">{t("createProperty.signInTitle")}</h1>
-            <p className="text-muted-foreground mb-6">{t("createProperty.signInDesc")}</p>
-            <Link href="/login"><Button size="lg">{t("createProperty.signInBtn")}</Button></Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
-  }
-
-  if (!isAdminOrAgent) {
-    return (
-      <>
-        <Header />
-        <main className="min-h-[60vh] flex items-center justify-center px-4">
-          <div className="text-center max-w-md">
-            <Shield className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">{t("createProperty.agentAccessTitle")}</h1>
-            <p className="text-muted-foreground mb-6">{t("createProperty.agentAccessDesc")}</p>
-            <Link href="/become-agent"><Button size="lg">{t("createProperty.applyAsAgent")}</Button></Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
-  }
+  const { createProperty, actionLoading, error, success } = useProperties()
+  const { isAuthenticated, isAdminOrAgent, loading: authLoading } = useAuthContext()
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [videoPreviews, setVideoPreviews] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [videoFiles, setVideoFiles] = useState<File[]>([])
-  const [step, setStep] = useState(1)
 
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors },
-    watch,
     reset,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -195,6 +156,54 @@ export default function CreatePropertyPage() {
     } catch (err) {
       // Error is handled by useProperties hook
     }
+  }
+
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t("common.loading")}</h1>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <LogIn className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t("createProperty.signInTitle")}</h1>
+            <p className="text-muted-foreground mb-6">{t("createProperty.signInDesc")}</p>
+            <Link href="/login"><Button size="lg">{t("createProperty.signInBtn")}</Button></Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!isAdminOrAgent) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <Shield className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t("createProperty.agentAccessTitle")}</h1>
+            <p className="text-muted-foreground mb-6">{t("createProperty.agentAccessDesc")}</p>
+            <Link href="/become-agent"><Button size="lg">{t("createProperty.applyAsAgent")}</Button></Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
   }
 
   return (
@@ -518,10 +527,10 @@ export default function CreatePropertyPage() {
               </Button>
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={actionLoading}
                 className="flex-1 bg-primary hover:bg-primary/90"
               >
-                {loading ? t("createProperty.submittingBtn") : t("createProperty.submitBtn")}
+                {actionLoading ? t("createProperty.submittingBtn") : t("createProperty.submitBtn")}
               </Button>
             </div>
           </form>
