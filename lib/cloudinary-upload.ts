@@ -49,7 +49,6 @@ export async function uploadFileToCloudinary(
   formData.append("timestamp", String(signedUpload.timestamp));
   formData.append("signature", signedUpload.signature);
   formData.append("folder", signedUpload.folder);
-  formData.append("resource_type", signedUpload.resourceType);
 
   return new Promise<UploadedMedia>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
