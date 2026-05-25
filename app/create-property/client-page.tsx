@@ -15,6 +15,7 @@ import { useProperties } from '@/hooks/use-properties'
 import { useAuthContext } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/use-translation'
 import { useCloudinaryMediaUpload } from '@/hooks/use-cloudinary-media'
+import { geocodeAddress } from '@/lib/geocode-address'
 import {
   DollarSign,
   FileVideo,
@@ -70,6 +71,7 @@ export default function CreatePropertyPage() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
     defaultValues: {
@@ -94,6 +96,24 @@ export default function CreatePropertyPage() {
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
+      const address = {
+        street: data.street,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        postalCode: data.postalCode,
+      }
+
+      toast.loading(t('createProperty.geocoding'), { id: 'property-geocode' })
+      const geocoded = await geocodeAddress(address)
+      if (!geocoded) {
+        toast.dismiss('property-geocode')
+        throw new Error(t('createProperty.geocodeFailed'))
+      }
+      toast.dismiss('property-geocode')
+      setValue('lat', geocoded.lat)
+      setValue('lng', geocoded.lng)
+
       const imageItems = await imageUploads.uploadPending()
       const videoItems = await videoUploads.uploadPending()
       const images = imageItems
@@ -113,15 +133,9 @@ export default function CreatePropertyPage() {
         area: normalizeOptionalNumber(data.area),
         propertyType: data.propertyType,
         status: data.status,
-        address: {
-          street: data.street,
-          city: data.city,
-          state: data.state,
-          country: data.country,
-          postalCode: data.postalCode,
-        },
-        lat: normalizeOptionalNumber(data.lat),
-        lng: normalizeOptionalNumber(data.lng),
+        address,
+        lat: geocoded.lat,
+        lng: geocoded.lng,
         amenities: parseAmenities(data.amenities),
         isFeatured: data.isFeatured,
         images,
@@ -325,6 +339,9 @@ export default function CreatePropertyPage() {
               </div>
 
               <div className="space-y-4">
+                <div className="rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm text-foreground/75">
+                  {t('createProperty.locationGeocodeNote')}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">{t('createProperty.street')}</label>
                   <input

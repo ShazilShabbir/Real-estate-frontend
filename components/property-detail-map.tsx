@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { MapPin } from "lucide-react"
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet"
 import L from "leaflet"
@@ -42,7 +42,7 @@ const TYPE_COLORS: Record<string, string> = {
 const getTypeColor = (pt?: string) => TYPE_COLORS[pt || ""] || "hsl(var(--primary))"
 
 // Fix Leaflet icon paths once
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -85,7 +85,12 @@ function NearbyPOILayer({ lat, lng }: { lat: number; lng: number }) {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return
-        const mapped: POI[] = (data.elements || []).slice(0, 20).map((e: any) => ({
+        const mapped: POI[] = (data.elements || []).slice(0, 20).map((e: {
+          lat?: number;
+          lon?: number;
+          center?: { lat?: number; lon?: number };
+          tags?: { amenity?: string; name?: string };
+        }) => ({
           lat: e.lat || (e.center?.lat ?? 0),
           lng: e.lon || (e.center?.lon ?? 0),
           type: e.tags?.amenity || "cafe",
@@ -176,7 +181,7 @@ function DetailMapContent({ latitude, longitude, title, propertyType }: {
 }
 
 function LeafletDetailMap({ latitude, longitude, title, propertyType, height = "300px" }: PropertyDetailMapProps) {
-  if (!latitude || !longitude) {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     return (
       <div className="flex items-center justify-center bg-muted/30 rounded-2xl border border-border/50" style={{ height }}>
         <MapPin className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
@@ -201,10 +206,5 @@ function LeafletDetailMap({ latitude, longitude, title, propertyType, height = "
 }
 
 export default function PropertyDetailMap(props: PropertyDetailMapProps) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  if (!mounted) {
-    return <div style={{ height: props.height || "300px" }} className="bg-muted/30 rounded-2xl border border-border/50" />
-  }
   return <LeafletDetailMap {...props} />
 }
