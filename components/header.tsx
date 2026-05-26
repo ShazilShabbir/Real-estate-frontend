@@ -111,17 +111,15 @@ export function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group">
           {normalizedSiteLogo ? (
-            <div className="relative h-10 flex items-center">
-              <img src={normalizedSiteLogo} alt={siteName} className="h-full w-auto max-w-[200px] object-contain" />
+            <div className="relative h-15 flex items-center">
+              <img src={normalizedSiteLogo} alt={siteName} className="h-full w-auto max-w-[300px] object-contain" />
             </div>
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-amber-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <span className="text-primary-foreground font-bold text-lg">E</span>
-            </div>
-          )}
-          <span className="font-bold text-xl hidden sm:inline bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            <span className="font-bold text-xl hidden sm:inline bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             {siteName}
           </span>
+          )}
+          
         </Link>
 
         {/* Desktop Nav */}
