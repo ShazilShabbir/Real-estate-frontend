@@ -6,14 +6,25 @@ import { useTranslation } from "@/lib/use-translation"
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
 import { Newsletter } from "@/components/newsletter"
 
+
+function normalizeAssetUrl(url?: string | null) {
+  if (!url) return url
+  if (url.startsWith("http://")) {
+    return `https://${url.slice("http://".length)}`
+  }
+  return url
+}
+
 export function Footer() {
-  const site = useSite()
+ 
+    const { siteLogo, siteName, siteTagline, socialFacebook, socialTwitter, socialInstagram, socialLinkedin, contactEmail, contactPhone, contactAddress } = useSite()
+      const normalizedSiteLogo = normalizeAssetUrl(siteLogo)
   const { t } = useTranslation()
   const socials: { key: string; icon: typeof Facebook; label: string; href: string }[] = [
-    { key: "facebook", icon: Facebook, label: t("footer.facebook"), href: site.socialFacebook },
-    { key: "twitter", icon: Twitter, label: t("footer.twitter"), href: site.socialTwitter },
-    { key: "instagram", icon: Instagram, label: t("footer.instagram"), href: site.socialInstagram },
-    { key: "linkedin", icon: Linkedin, label: t("footer.linkedin"), href: site.socialLinkedin },
+    { key: "facebook", icon: Facebook, label: t("footer.facebook"), href: socialFacebook },
+    { key: "twitter", icon: Twitter, label: t("footer.twitter"), href: socialTwitter },
+    { key: "instagram", icon: Instagram, label: t("footer.instagram"), href: socialInstagram },
+    { key: "linkedin", icon: Linkedin, label: t("footer.linkedin"), href: socialLinkedin },
   ].filter((s) => s.href)
 
   return (
@@ -24,13 +35,18 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
-                <span className="text-primary-foreground font-bold text-lg">E</span>
-              </div>
-              <span className="font-bold text-xl font-heading">{site.siteName || "EstateHub"}</span>
+              {normalizedSiteLogo ? (
+            <div className="relative h-15 flex items-center">
+              <img src={normalizedSiteLogo} alt={siteName} className="h-full w-auto max-w-[300px] object-contain" />
+            </div>
+          ) : (
+            <span className="font-bold text-xl hidden sm:inline bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            {siteName}
+          </span>
+          )}
             </Link>
             <p className="text-primary-foreground/50 text-sm leading-relaxed max-w-xs">
-              {site.siteTagline || t("footer.tagline")}
+              {siteTagline || t("footer.tagline")}
             </p>
           </div>
 
@@ -83,13 +99,13 @@ export function Footer() {
             <h4 className="font-semibold mb-5 text-primary-foreground/80 font-heading tracking-wide">{t("footer.contact")}</h4>
             <ul className="space-y-3 text-sm text-primary-foreground/50">
               <li className="flex items-start gap-2">
-                <span>{site.contactEmail || "info@estatehub.com"}</span>
+                <span>{contactEmail || "info@estatehub.com"}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span>{site.contactPhone || "(555) 123-4567"}</span>
+                <span>{contactPhone || "(555) 123-4567"}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span>{site.contactAddress || "123 Luxury Lane, New York, NY 10001"}</span>
+                <span>{contactAddress || "123 Luxury Lane, New York, NY 10001"}</span>
               </li>
             </ul>
           </div>
@@ -107,7 +123,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-primary-foreground/30">
-            {t("footer.copyright", { year: new Date().getFullYear(), siteName: site.siteName || "EstateHub" })}
+            {t("footer.copyright", { year: new Date().getFullYear(), siteName: siteName || "EstateHub" })}
           </p>
           <div className="flex items-center gap-6 text-sm text-primary-foreground/30">
             {socials.map((s) => {
